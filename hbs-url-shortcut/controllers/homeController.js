@@ -2,13 +2,14 @@ const Url = require('../models/Url')
 const { nanoid } = require("nanoid")
 
 const leerUrls = async (req, res) => {
-    const urls = [
-        { origin: "www.google.com/mauro1", shortURL: "sgfgfg-1" },
-        { origin: "www.google.com/mauro2", shortURL: "sgfgfg-2" },
-        { origin: "www.google.com/mauro3", shortURL: "sgfgfg-3" },
-        { origin: "www.google.com/mauro4", shortURL: "sgfgfg-4" },
-    ]
-    res.render("home", { urls: urls })
+    console.log(req.user);
+    try {
+        const urls = await Url.find().lean();
+
+        res.render("home", { urls: urls })
+    } catch (error) {
+        console.log('Algo salio mal');
+    }
 }
 
 const agregarUrl = async (req, res) => {
@@ -26,7 +27,57 @@ const agregarUrl = async (req, res) => {
     }
 }
 
+const eliminarUrls = async (req, res) => {
+    const { id } = req.params
+    try {
+        await Url.findByIdAndDelete(id)
+        res.redirect("/")
+    } catch (error) {
+        console.log(error);
+        res.send('!error!,algo salio mal',)
+    }
+}
+
+const editarUrlForm = async (req, res) => {
+    const { id } = req.params
+    try {
+        const url = await Url.findById(id).lean()
+        //console.log(url);
+        res.render('home', { url })
+    } catch (error) {
+        console.log(error);
+        res.send('!error!,algo salio mal',)
+    }
+}
+
+const editarUrl = async (req, res) => {
+    const { id } = req.params
+    const { origin } = req.body
+    try {
+        await Url.findByIdAndUpdate(id, { origin: origin })
+        res.redirect("/")
+    } catch (error) {
+        console.log(error);
+        res.send('!error!,algo salio mal',)
+    }
+}
+
+const redireccionamiento = async (req, res) => {
+    const { shortURL } = req.params
+    console.log(shortURL);
+    try {
+        const urlDB = await Url.findOne({ shortURL: shortURL })
+        res.redirect(urlDB.origin)
+    } catch (error) {
+
+    }
+}
+
 module.exports = {
     leerUrls,
     agregarUrl,
+    eliminarUrls,
+    editarUrlForm,
+    editarUrl,
+    redireccionamiento,
 }
