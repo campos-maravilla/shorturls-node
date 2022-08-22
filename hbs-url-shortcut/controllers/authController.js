@@ -1,12 +1,18 @@
 const User = require("../models/User");
 const { validationResult } = require('express-validator')
 const { nanoid } = require('nanoid')
+const nodemailer = require("nodemailer");
+require('dotenv').config()
 
 
 const registerForm = (req, res) => {
-    res.render('register', { mensajes: req.flash("mensajes") })
+    res.render('register')
 }
 
+
+const loginForm = (req, res) => {
+    res.render('login')
+}
 
 const registerUser = async (req, res) => {
     //console.log(req.body);
@@ -27,6 +33,22 @@ const registerUser = async (req, res) => {
         await user.save()
 
         // enviar correo electronico con la confirmación de la cuenta
+        const transport = nodemailer.createTransport({
+            host: "smtp.mailtrap.io",
+            port: 2525,
+            auth: {
+                user: process.env.userEmail,
+                pass: process.env.passEmail
+            }
+        });
+
+        await transport.sendMail({
+            from: '"Fred Foo 👻" <foo@example.com>', // sender address
+            to: user.email,// "bar@example.com, baz@example.com", // list of receivers
+            subject: "Verifica tu cuenta de correo ✔", // Subject line
+            html: `<a href="http://localhost:5000/auth/confirmar/${user.tokenConfirm}">Verifica tu cuenta aqui?</a>`, // html body
+        });
+
         req.flash("mensajes",
             [{ msg: "Revisa tu correo electronico y válida tu cuenta" }])
 
@@ -35,9 +57,9 @@ const registerUser = async (req, res) => {
         // console.log(user);
         //res.json(user)
     } catch (error) {
-        //res.json({ error: error.message })
         req.flash("mensajes", [{ msg: error.message }])
-        return res.redirect('/auth/login')
+        return res.redirect('/auth/register')
+        //res.json({ error: error.message })
     }
 
 }
@@ -60,7 +82,7 @@ const confirmarCuenta = async (req, res) => {
 
         res.redirect('/auth/login')
 
-        res.json(user)
+        //res.json(user)
     } catch (error) {
         //res.json({ error: error.message })
         req.flash("mensajes", [{ msg: error.message }])
@@ -70,9 +92,7 @@ const confirmarCuenta = async (req, res) => {
     //res.json(token)
 }
 
-const loginForm = (req, res) => {
-    res.render('login', { mensajes: req.flash("mensajes") })
-}
+/* aqui estaba loginForm */
 
 const loginUser = async (req, res) => {
 
