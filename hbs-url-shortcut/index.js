@@ -1,24 +1,45 @@
 const express = require('express')
 const session = require('express-session')
-//const MongoStore = require('connect-mongo')
+const MongoStore = require('connect-mongo')//config para heroku
 const flash = require('connect-flash')
 const passport = require('passport')
+const mongoSanitize = require('express-mongo-sanitize');//config para heroku
+const cors = require('cors')//config para heroku
 const { create } = require('express-handlebars');
 const csrf = require("csurf");
 
 
 const User = require('./models/User');
 require('dotenv').config()
-require('./database/db')
+//config para herokux
+//require('./database/db') ya no porque esta config. para subir a heroku y se trae clientDB
+const clientDB = require('./database/db')//config para herokux
 
+//config para heroku
 const app = express()
+const corsOptions = {
+    credentials: true,
+    origin: process.env.PATHHEROKU || "*",
+    methods: ['GET', 'POST']
+
+}
+app.use(cors()) //config para heroku
 
 app.use(
     session({
-        secret: 'my backend',
+        secret: process.env.SECRETSESSION,
         resave: false,
         saveUninitialized: false,
-        name: 'secret-name-yes-yes-yes'
+        name: 'session-user',
+        store: MongoStore.create({   //config para heroku
+            clientPromise: clientDB, //config para heroku
+            dbName: process.env.DBNAME, //config para heroku  dbName: 'DBurls' se puede omitir
+        }),
+        cookie: {
+            secure: process.env.MODO === 'production',
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        },
+
     })
 )
 app.use(flash())
@@ -51,6 +72,7 @@ app.use(express.static(__dirname + "/public"))
 app.use(express.urlencoded({ extended: true }))
 
 app.use(csrf());
+app.use(mongoSanitize());//config para herokux
 
 app.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken()

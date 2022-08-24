@@ -22,7 +22,7 @@ const agregarUrl = async (req, res) => {
     const { origin } = req.body
     try {
         const url = new Url({ origin: origin, shortURL: nanoid(8), user: req.user.id })/* shortURL no se pone porque en el modelo se puso por defecto nanoID  */
-        console.log(url);
+        // console.log(url);
         await url.save()
         req.flash("mensajes", [{ msg: 'URL agregada' }])
         return res.redirect('/')

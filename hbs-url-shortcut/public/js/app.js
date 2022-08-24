@@ -4,7 +4,8 @@ document.addEventListener("click", (e) => {
     //console.log(e.target.dataset.short);
     if (e.target.dataset.short) {
         //console.log("existe");
-        const url = `http://localhost:5000/${e.target.dataset.short}`
+        // const url = `http://localhost:5000/${e.target.dataset.short}`
+        const url = `${window.location.origin}/${e.target.dataset.short}`;//heroku
 
         navigator.clipboard
             .writeText(url)
